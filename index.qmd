@@ -1,0 +1,117 @@
+---
+title: "Consultas de registros de pacientes con insuficiencia cardíaca"
+author: "Irina Pérez Lescano | Ashly Salas Chavez"
+format: html
+editor: visual
+toc: true
+lang: es
+theme: simplex
+---
+
+# Introducción
+Esta página web consiste en una serie de consultas de un conjunto de datos sobre 299 registros de pacientes que sufrieron insuficiencia cardíaca, donde a cada paciente, se le consideraron 13 características clínicas (edad, sexo, si tenía anemia, si tenía diabetes, si fumaba, entre otras). Estos datos forman parte del artículo [Chicco, D., Jurman, G. Machine learning can predict survival of patients with heart failure from serum creatinine and ejection fraction alone. BMC Med Inform Decis Mak 20, 16 (2020)](https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-020-1023-5).
+
+**Nota:** En el conjunto de datos hay varias variables booleanas con valor 0 o 1, donde 0 significa falso (no) y 1 significa verdadero (sí). Para la característica de sex, el 0 corresponde a  mujer y el 1 a  hombre.
+
+
+# Carga de Paquetes
+
+```{r}
+#| label: carga-paquetes
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(knitr)
+```
+
+# Carga de datos
+
+```{r}
+#| label: carga-datos
+#| message: false
+#| warning: false
+
+registros <- read.csv("heart_failure_clinical_records_dataset.csv")
+
+```
+
+# Consultas
+
+## Consulta 1
+Tabla de hombres mayores de 70 años, diabéticos y no anémicos, en orden descendente de edad.
+Con las siguientes caracteristicas clinicas: 
+
+- Sexo 
+- Edad 
+- Diabetes 
+- Anemia 
+- Presión arterial alta
+
+```{r}
+#| label: consulta-01
+#| message: false
+#| warning: false
+
+ registros |>
+   filter(age >= 70, sex == "1" & anaemia == "0" & diabetes == "1") |>
+   select(age, sex, diabetes, anaemia, high_blood_pressure) |>
+   arrange(desc(age)) |>
+   kable() 
+   
+```
+
+## Consulta 2
+Tabla de todas las mujeres con fracción de eyección entre 20 (inclusive) y 25 (inclusive), en orden descendente de fracción de eyección.
+Con las siguientes características clínicas:
+
+- Sexo
+- Fracción de eyección
+- Anemia
+- Diabetes
+
+```{r}
+#| label: consulta-02
+#| message: false
+#| warning: false
+
+ registros |>
+   filter(sex == "0" & ejection_fraction >= "20" & ejection_fraction <= "25" ) |>
+   select(ejection_fraction, sex, anaemia, diabetes) |>
+   arrange(desc(ejection_fraction)) |>
+   kable() 
+   
+```
+
+## Consulta 3
+Tabla del promedio de creatinina sérica de pacientes sobrevivientes y de pacientes fallecidos.
+
+```{r}
+#| label: consulta-03
+#| message: false
+#| warning: false
+
+registros |>
+  group_by(DEATH_EVENT) |>
+  summarize(
+    serum_creatinine_mean = mean(serum_creatinine, 1 ),
+    n = n()) |>
+  kable()
+```
+
+## Consulta 4
+Tabla del valor máximo de creatinina sérica de las mujeres que son anémicas o diabéticas.
+
+```{r}
+#| label: consulta-04
+#| message: false
+#| warning: false
+
+registros |>
+  filter(sex == "0", anaemia == "1" | diabetes == "1") |>
+  group_by( sex, anaemia, diabetes) |>
+  summarize(
+    serum_creatinine_max = max(serum_creatinine)) |>
+  kable()
+```
+
